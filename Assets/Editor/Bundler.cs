@@ -78,7 +78,9 @@ public class Bundler : MonoBehaviour {
 	private static string[] GetFileRelativePathes(string root)
 	{
 		var files = Directory.GetFiles(root, "*.*", SearchOption.AllDirectories);
-		var relativePathes = files.Select(path => {
+		var relativePathes = files
+		.Where(path => !path.EndsWith(".meta"))
+		.Select(path => {
 			// remove(root + "/")
 			var relativePath = path.Substring(path.LastIndexOf(root) + root.Length).Substring(1);
 			return relativePath;
