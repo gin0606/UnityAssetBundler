@@ -13,8 +13,28 @@ public class Bundler : MonoBehaviour {
 		".DS_Store",
 	};
 
+	public static void ExportForAndroid() {
+		ExportForTarget(BuildTarget.Android);
+	}
+
+	public static void ExportForiOS() {
+		ExportForTarget(BuildTarget.iPhone);
+	}
+
+	public static void ExportForOSXUniversal() {
+		ExportForTarget(BuildTarget.StandaloneOSXUniversal);
+	}
+
 	public static void ExportAll()
 	{
+		ExportForTarget(new BuildTarget[]{BuildTarget.Android, BuildTarget.iPhone, BuildTarget.StandaloneOSXUniversal});
+	}
+
+	private static void ExportForTarget(BuildTarget buildTarget){
+		ExportForTarget(new BuildTarget[]{buildTarget});
+	}
+
+	private static void ExportForTarget(BuildTarget[] buildTargets){
 		var args = System.Environment.GetCommandLineArgs();
 		string projectPath = null;
 		bool unconpress = false;
@@ -34,9 +54,9 @@ public class Bundler : MonoBehaviour {
 
 		foreach(var path in subDirectories){
 			var name = path.Split(Path.DirectorySeparatorChar).Last();
-			Export(BuildTarget.Android, path, name, unconpress);
-			Export(BuildTarget.iPhone, path, name, unconpress);
-			Export(BuildTarget.StandaloneOSXUniversal, path, name, unconpress);
+			foreach (var buildTarget in buildTargets) {
+				Export(buildTarget, path, name, unconpress);
+			}
 		}
 		UnityEditor.EditorApplication.Exit(0);
 	}
