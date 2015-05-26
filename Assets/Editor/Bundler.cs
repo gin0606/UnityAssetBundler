@@ -43,7 +43,7 @@ public class Bundler : MonoBehaviour {
 
 	public static bool Export (BuildTarget buildTarget, string resPath, string bundleFileName, bool uncompress)
 	{
-		var filePathAndExt = GetFileRelativePathes(resPath)
+		var filePathAndExt = GetBundleFileRelativePathes(resPath)
 			.Where(path => !IGNORE_FILE_NAMES.Contains(path))
 			.ToDictionary(
 				path => Path.GetDirectoryName(path) + Path.GetFileNameWithoutExtension(path),
@@ -75,7 +75,7 @@ public class Bundler : MonoBehaviour {
 		return result;
 	}
 
-	private static string[] GetFileRelativePathes(string root)
+	private static string[] GetBundleFileRelativePathes(string root)
 	{
 		var files = Directory.GetFiles(root, "*.*", SearchOption.AllDirectories);
 		var relativePathes = files
