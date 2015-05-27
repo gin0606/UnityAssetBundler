@@ -33,9 +33,6 @@ class AssetBundler
             compress = value;
         }
     }
-    private static string[] IGNORE_FILE_NAMES = new string[]{
-        ".DS_Store",
-    };
 
     public AssetBundler(string projectPath)
     {
@@ -46,57 +43,67 @@ class AssetBundler
 
     public void build()
     {
-        var directories = Directory.GetDirectories(this.resourceDirPath)
+        var bundleSets = Directory.GetDirectories(this.resourceDirPath)
             .Select(dir => Directory.GetDirectories(dir))
-            .SelectMany(x => x);
+            .SelectMany(x => x)
+            .Select(x => new BundleSet(x));
         foreach (var buildTarget in buildTargets)
         {
-            foreach (var path in directories)
+            foreach (var bundleSet in bundleSets)
             {
-                var name = path.Split(Path.DirectorySeparatorChar).Last();
-                Export(buildTarget, path, name);
+                bundleSet.bundle(buildTarget, this.resourceDirPath, this.outputDirPath, this.compress);
             }
         }
     }
 
-    private bool Export(BuildTarget buildTarget, string resPath, string bundleFileName)
+    class BundleSet
     {
-        var filePathWithoutExt = GetBundleFileRelativePathes(resPath)
-            .Where(path => !IGNORE_FILE_NAMES.Contains(path))
-            .Select(path => Path.GetDirectoryName(path) + Path.GetFileNameWithoutExtension(path))
+        private string resPath;
+        private static string[] IGNORE_FILE_NAMES = new string[] {
+            ".DS_Store",
+        };
+        public BundleSet(string root)
+        {
+            this.resPath = root;
+        }
+
+        public void bundle(BuildTarget buildTarget, string resourceDirPath, string outputDirPath, bool compress)
+        {
+            var bundleFileName = this.resPath.Split(Path.DirectorySeparatorChar).Last();
+            var filePathWithoutExt = GetBundleFileRelativePathes(resPath)
+                .Where(path => !IGNORE_FILE_NAMES.Contains(path))
+                .Select(path => Path.GetDirectoryName(path) + Path.GetFileNameWithoutExtension(path))
+                .ToArray();
+
+            var basePath = resPath.GetRelativePathFrom(resourceDirPath);
+
+            var assets = filePathWithoutExt.Select(path => Resources.Load(Path.Combine(basePath, path)));
+
+            var outputDir = Path.Combine(outputDirPath, Path.Combine(basePath.Split(Path.DirectorySeparatorChar).First(), buildTarget.ToString()));
+            if (!Directory.Exists(outputDir))
+            {
+                Directory.CreateDirectory(outputDir);
+            }
+
+            var outPath = Path.Combine(outputDir, Path.ChangeExtension(bundleFileName, "unity3d"));
+
+            var opt = BuildAssetBundleOptions.CollectDependencies | BuildAssetBundleOptions.CompleteAssets;
+            if (!compress)
+            {
+                opt |= BuildAssetBundleOptions.UncompressedAssetBundle;
+            }
+
+            var result = BuildPipeline.BuildAssetBundleExplicitAssetNames(assets.ToArray(), filePathWithoutExt.ToArray(), outPath, opt, buildTarget);
+        }
+        private string[] GetBundleFileRelativePathes(string root)
+        {
+            var files = Directory.GetFiles(root, "*.*", SearchOption.AllDirectories);
+            var relativePathes = files
+            .Where(path => !path.EndsWith(".meta"))
+            .Select(path => path.GetRelativePathFrom(root))
             .ToArray();
 
-        var basePath = resPath.GetRelativePathFrom(this.resourceDirPath);
-
-        var assets = filePathWithoutExt.Select(path => Resources.Load(Path.Combine(basePath, path)));
-
-        var outputDir = Path.Combine(this.outputDirPath, Path.Combine(basePath.Split(Path.DirectorySeparatorChar).First(), buildTarget.ToString()));
-        if (!Directory.Exists(outputDir))
-        {
-            Directory.CreateDirectory(outputDir);
+            return relativePathes;
         }
-
-        var outPath = Path.Combine(outputDir, Path.ChangeExtension(bundleFileName, "unity3d"));
-
-        var opt = BuildAssetBundleOptions.CollectDependencies | BuildAssetBundleOptions.CompleteAssets;
-        if (!this.compress)
-        {
-            opt |= BuildAssetBundleOptions.UncompressedAssetBundle;
-        }
-
-        var result = BuildPipeline.BuildAssetBundleExplicitAssetNames(assets.ToArray(), filePathWithoutExt.ToArray(), outPath, opt, buildTarget);
-
-        return result;
-    }
-
-    private string[] GetBundleFileRelativePathes(string root)
-    {
-        var files = Directory.GetFiles(root, "*.*", SearchOption.AllDirectories);
-        var relativePathes = files
-        .Where(path => !path.EndsWith(".meta"))
-        .Select(path => path.GetRelativePathFrom(root))
-        .ToArray();
-
-        return relativePathes;
     }
 }
