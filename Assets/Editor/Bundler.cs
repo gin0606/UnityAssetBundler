@@ -3,6 +3,14 @@ using UnityEditor;
 using System.Linq;
 using System.IO;
 
+class Importer : UnityEditor.AssetPostprocessor
+{
+    public void OnPreprocessTexture()
+    {
+        Debug.LogError("assetPath: " + assetPath + "！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！");
+    }
+}
+
 public class Bundler : MonoBehaviour
 {
     const string PROJECT_PATH_OPTION_KEY = "-projectPath";
