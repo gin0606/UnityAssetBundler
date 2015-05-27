@@ -90,12 +90,7 @@ public class Bundler : MonoBehaviour
                 path => Path.GetExtension(path)
             );
 
-        var startIndex = resPath.LastIndexOf(RESOURCE_DIR_PATH) + RESOURCE_DIR_PATH.Length;
-        var basePath = resPath.Substring(startIndex);
-        if (basePath.StartsWith(Path.DirectorySeparatorChar.ToString()))
-        {
-            basePath = basePath.Substring(1);
-        }
+        var basePath = resPath.GetRelativePathFrom(Path.GetFullPath(RESOURCE_DIR_PATH));
 
         var assets = filePathAndExt.Keys.Select(path => Resources.Load(Path.Combine(basePath, path)));
 
@@ -123,12 +118,21 @@ public class Bundler : MonoBehaviour
         var files = Directory.GetFiles(root, "*.*", SearchOption.AllDirectories);
         var relativePathes = files
         .Where(path => !path.EndsWith(".meta"))
-        .Select(path =>
-        {
-            // remove(root + "/")
-            var relativePath = path.Substring(path.LastIndexOf(root) + root.Length).Substring(1);
-            return relativePath;
-        }).ToArray();
+        .Select(path => path.GetRelativePathFrom(root))
+        .ToArray();
+
         return relativePathes;
+    }
+}
+
+static class PathExtention
+{
+    public static string GetRelativePathFrom(this string toPath, string fromPath)
+    {
+        var toURI = new System.Uri(toPath);
+        var fromURI = new System.Uri(fromPath + Path.DirectorySeparatorChar);
+
+        var relativeURI = fromURI.MakeRelativeUri(toURI);
+        return System.Uri.UnescapeDataString(relativeURI.ToString());
     }
 }
