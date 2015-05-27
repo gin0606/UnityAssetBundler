@@ -34,11 +34,11 @@ class AssetBundler
         }
     }
 
-    public AssetBundler(string projectPath)
+    public AssetBundler(string projectPath, string resourcesDir = "Assets/Resources", string outputDir = "build")
     {
         this.projectPath = Path.GetFullPath(projectPath);
-        this.resourceDirPath = Path.Combine(this.projectPath, "Assets/Resources");
-        this.outputDirPath = Path.Combine(this.projectPath, "build");
+        this.resourceDirPath = Path.Combine(this.projectPath, resourcesDir);
+        this.outputDirPath = Path.Combine(this.projectPath, outputDir);
     }
 
     public void build()
