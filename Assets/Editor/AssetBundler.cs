@@ -8,6 +8,7 @@ class AssetBundler
 {
     private string projectPath;
     private string resourceDirPath;
+    private string outputDirPath;
     private BuildTarget[] buildTargets = new BuildTarget[] { };
     public BuildTarget[] BuildTargets
     {
@@ -35,12 +36,12 @@ class AssetBundler
     private static string[] IGNORE_FILE_NAMES = new string[]{
         ".DS_Store",
     };
-    private const string OUTPUT_BASE_DIR = "build";
 
     public AssetBundler(string projectPath)
     {
         this.projectPath = Path.GetFullPath(projectPath);
         this.resourceDirPath = Path.Combine(this.projectPath, "Assets/Resources");
+        this.outputDirPath = Path.Combine(this.projectPath, "build");
     }
 
     public void build()
@@ -69,7 +70,7 @@ class AssetBundler
 
         var assets = filePathWithoutExt.Select(path => Resources.Load(Path.Combine(basePath, path)));
 
-        var outputDir = Path.Combine(OUTPUT_BASE_DIR, Path.Combine(basePath.Split(Path.DirectorySeparatorChar).First(), buildTarget.ToString()));
+        var outputDir = Path.Combine(this.outputDirPath, Path.Combine(basePath.Split(Path.DirectorySeparatorChar).First(), buildTarget.ToString()));
         if (!Directory.Exists(outputDir))
         {
             Directory.CreateDirectory(outputDir);
