@@ -65,12 +65,14 @@ public class Bundler : MonoBehaviour
             }
         }
 
-        var directories = Directory.GetDirectories(Path.Combine(projectPath, RESOURCE_DIR_PATH));
-        var subDirectories = directories.Select(dir => Directory.GetDirectories(dir)).SelectMany(x => x);
+        var projectResourceDirPath = Path.Combine(projectPath, RESOURCE_DIR_PATH);
+        var directories = Directory.GetDirectories(projectResourceDirPath)
+            .Select(dir => Directory.GetDirectories(dir))
+            .SelectMany(x => x);
 
         foreach (var buildTarget in buildTargets)
         {
-            foreach (var path in subDirectories)
+            foreach (var path in directories)
             {
                 var name = path.Split(Path.DirectorySeparatorChar).Last();
                 Export(buildTarget, path, name, unconpress);
