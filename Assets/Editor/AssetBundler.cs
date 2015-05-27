@@ -53,12 +53,12 @@ class AssetBundler
             foreach (var path in directories)
             {
                 var name = path.Split(Path.DirectorySeparatorChar).Last();
-                Export(buildTarget, path, name, !this.compress);
+                Export(buildTarget, path, name);
             }
         }
     }
 
-    private bool Export(BuildTarget buildTarget, string resPath, string bundleFileName, bool uncompress)
+    private bool Export(BuildTarget buildTarget, string resPath, string bundleFileName)
     {
         var filePathWithoutExt = GetBundleFileRelativePathes(resPath)
             .Where(path => !IGNORE_FILE_NAMES.Contains(path))
@@ -78,7 +78,7 @@ class AssetBundler
         var outPath = Path.Combine(outputDir, Path.ChangeExtension(bundleFileName, "unity3d"));
 
         var opt = BuildAssetBundleOptions.CollectDependencies | BuildAssetBundleOptions.CompleteAssets;
-        if (uncompress)
+        if (!this.compress)
         {
             opt |= BuildAssetBundleOptions.UncompressedAssetBundle;
         }
