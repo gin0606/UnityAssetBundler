@@ -83,16 +83,14 @@ public class Bundler : MonoBehaviour
 
     public static bool Export(BuildTarget buildTarget, string resPath, string bundleFileName, bool uncompress)
     {
-        var filePathAndExt = GetBundleFileRelativePathes(resPath)
+        var filePathWithoutExt = GetBundleFileRelativePathes(resPath)
             .Where(path => !IGNORE_FILE_NAMES.Contains(path))
-            .ToDictionary(
-                path => Path.GetDirectoryName(path) + Path.GetFileNameWithoutExtension(path),
-                path => Path.GetExtension(path)
-            );
+            .Select(path => Path.GetDirectoryName(path) + Path.GetFileNameWithoutExtension(path))
+            .ToArray();
 
         var basePath = resPath.GetRelativePathFrom(Path.GetFullPath(RESOURCE_DIR_PATH));
 
-        var assets = filePathAndExt.Keys.Select(path => Resources.Load(Path.Combine(basePath, path)));
+        var assets = filePathWithoutExt.Select(path => Resources.Load(Path.Combine(basePath, path)));
 
         var outputDir = Path.Combine(OUTPUT_BASE_DIR, Path.Combine(basePath.Split(Path.DirectorySeparatorChar).First(), buildTarget.ToString()));
         if (!Directory.Exists(outputDir))
@@ -108,7 +106,7 @@ public class Bundler : MonoBehaviour
             opt |= BuildAssetBundleOptions.UncompressedAssetBundle;
         }
 
-        var result = BuildPipeline.BuildAssetBundleExplicitAssetNames(assets.ToArray(), filePathAndExt.Keys.ToArray(), outPath, opt, buildTarget);
+        var result = BuildPipeline.BuildAssetBundleExplicitAssetNames(assets.ToArray(), filePathWithoutExt.ToArray(), outPath, opt, buildTarget);
 
         return result;
     }
